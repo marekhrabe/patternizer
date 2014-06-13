@@ -6,5 +6,13 @@
   "scripts": {
     "prepublish": "coffee -o lib/ src/"
   },
-  "main": "./lib/main"
+  "main": "./lib/main",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/marekhrabe/patternizer.git"
+  },
+  "bugs": {
+    "url": "http://github.com/marekhrabe/patternizer/issues"
+  },
+  "license": "MIT"
 }
