@@ -24,6 +24,8 @@ module.exports = (params) ->
   name ?= 'Pattern'
   id ?= randomUUID()
 
+  computedChannels = if channels is 1 then 3 else channels
+
   # file header
   outputStream.write new Buffer([
     0x38, 0x42, 0x50, 0x54, # intro "8BPT" string
@@ -63,7 +65,7 @@ module.exports = (params) ->
   patternHeader.writeUInt32BE 3, 0
   # size of chunk of data for pattern
   # = pattern data + header except version and pattern_size
-  patternHeader.writeUInt32BE(5 * sizeofUnsignedInt + channels * (width * height + 7 * sizeofUnsignedInt + sizeofUnsignedShort + sizeofUnsignedChar) + dafuqPadding, 1 * sizeofUnsignedInt)
+  patternHeader.writeUInt32BE(5 * sizeofUnsignedInt + computedChannels * (width * height + 7 * sizeofUnsignedInt + sizeofUnsignedShort + sizeofUnsignedChar) + dafuqPadding, 1 * sizeofUnsignedInt)
   # top offset
   patternHeader.writeUInt32BE 0, 2 * sizeofUnsignedInt
   # left offset
@@ -73,7 +75,7 @@ module.exports = (params) ->
   # right offset
   patternHeader.writeUInt32BE width, 5 * sizeofUnsignedInt
   # bit depth
-  patternHeader.writeUInt32BE 8 * channels, 6 * sizeofUnsignedInt
+  patternHeader.writeUInt32BE 8 * computedChannels, 6 * sizeofUnsignedInt
   # flushing pattern header
   outputStream.write patternHeader
 
@@ -99,16 +101,32 @@ module.exports = (params) ->
   channelHeader.writeUInt8 0, 30
 
   # looping all channels
-  for i in [0...channels]
-    outputStream.write channelHeader
+  if channels in [3, 4]
+    for i in [0...channels]
+      outputStream.write channelHeader
 
+      # array of channel intensities (0-255)
+      channelData = []
+      for j in [i...data.length] by channels
+        channelData.push(data[j])
+
+      # writing data
+      outputStream.write new Buffer(channelData)
+
+  # greyscale is a special case, we will convert it to rgb
+  else if channels is 1
     # array of channel intensities (0-255)
     channelData = []
-    for j in [i...data.length] by channels
+    for j in [0...data.length]
       channelData.push(data[j])
 
-    # writing data
-    outputStream.write new Buffer(channelData)
+    channelDataBuffer = new Buffer(channelData)
+
+    for i in [0...3]
+      # write header
+      outputStream.write channelHeader
+      # write data
+      outputStream.write channelDataBuffer
 
   # end file padding of magic size found by mistake
   padding = new Buffer(dafuqPadding)
