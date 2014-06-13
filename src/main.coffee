@@ -24,7 +24,7 @@ module.exports = (params) ->
   name ?= 'Pattern'
   id ?= randomUUID()
 
-  computedChannels = if channels is 1 then 3 else channels
+  computedChannels = if channels in [1, 4] then 3 else channels
 
   # file header
   outputStream.write new Buffer([
@@ -102,7 +102,9 @@ module.exports = (params) ->
 
   # looping all channels
   if channels in [3, 4]
-    for i in [0...channels]
+    # only rgb
+    for i in [0...3]
+      # headers all the same for all channels
       outputStream.write channelHeader
 
       # array of channel intensities (0-255)
