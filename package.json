@@ -1,6 +1,6 @@
 {
   "name": "patternizer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Creates Photoshop pattern files (.pat)",
   "author": "Marek Hrabe <marekhrabe@abdoc.net> (http://github.com/marekhrabe)",
   "scripts": {
