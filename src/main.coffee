@@ -9,7 +9,7 @@ randomUUID = ->
     if i in [8, 13, 18, 23]
       out += '-'
     else
-      out = Math.floor(36 * Math.random()).toString(36)
+      out += Math.floor(36 * Math.random()).toString(36)
   out
 
 sizeofUnsignedInt = 4
