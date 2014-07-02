@@ -76,7 +76,7 @@ module.exports = (params) ->
   # size of chunk of data for pattern
   # = pattern data + header except version and pattern_size
   channelSize = (width * height + 7 * sizeofUnsignedInt + sizeofUnsignedShort + sizeofUnsignedChar)
-  patternHeader.writeUInt32BE 5 * sizeofUnsignedInt + computedChannels * channelSize + dafuqPadding + (if alpha then alphaPadding + channelSize else 0), 1 * sizeofUnsignedInt
+  patternHeader.writeUInt32BE 5 * sizeofUnsignedInt + computedChannels * channelSize + dafuqPadding + (if alpha then alphaPadding + channelSize else 0) + (if computedChannels is 1 then 8 else 0), 1 * sizeofUnsignedInt
   # top offset
   patternHeader.writeUInt32BE 0, 2 * sizeofUnsignedInt
   # left offset
@@ -85,8 +85,8 @@ module.exports = (params) ->
   patternHeader.writeUInt32BE height, 4 * sizeofUnsignedInt
   # right offset
   patternHeader.writeUInt32BE width, 5 * sizeofUnsignedInt
-  # bit depth (always 24 for images with alpha, even if grayscale)
-  patternHeader.writeUInt32BE((8 * if alpha then 3 else computedChannels), 6 * sizeofUnsignedInt)
+  # bit depth (always 24, wtf)
+  patternHeader.writeUInt32BE(24, 6 * sizeofUnsignedInt)
   # flushing pattern header
   outputStream.write patternHeader
 
@@ -124,6 +124,12 @@ module.exports = (params) ->
 
     # writing data
     outputStream.write new Buffer(channelData)
+
+  # i don't know why, but fixed grayscale
+  if computedChannels is 1
+    grayscalePadding = new Buffer 8
+    grayscalePadding.fill 0x0
+    outputStream.write grayscalePadding
 
   # end image data by padding of magic size found by mistake
   padding = new Buffer(dafuqPadding)
