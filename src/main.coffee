@@ -16,6 +16,7 @@ sizeofUnsignedInt = 4
 sizeofUnsignedChar = 1
 sizeofUnsignedShort = 2
 dafuqPadding = 92
+alphaPadding = 4
 
 module.exports = (params) ->
   {name, id, image, outputStream, callback} = params
@@ -74,7 +75,8 @@ module.exports = (params) ->
   patternHeader.writeUInt32BE 3, 0
   # size of chunk of data for pattern
   # = pattern data + header except version and pattern_size
-  patternHeader.writeUInt32BE(5 * sizeofUnsignedInt + computedChannels * (width * height + 7 * sizeofUnsignedInt + sizeofUnsignedShort + sizeofUnsignedChar) + dafuqPadding, 1 * sizeofUnsignedInt)
+  channelSize = (width * height + 7 * sizeofUnsignedInt + sizeofUnsignedShort + sizeofUnsignedChar)
+  patternHeader.writeUInt32BE 5 * sizeofUnsignedInt + computedChannels * channelSize + dafuqPadding + (if alpha then alphaPadding + channelSize else 0), 1 * sizeofUnsignedInt
   # top offset
   patternHeader.writeUInt32BE 0, 2 * sizeofUnsignedInt
   # left offset
@@ -83,8 +85,8 @@ module.exports = (params) ->
   patternHeader.writeUInt32BE height, 4 * sizeofUnsignedInt
   # right offset
   patternHeader.writeUInt32BE width, 5 * sizeofUnsignedInt
-  # bit depth
-  patternHeader.writeUInt32BE 8 * computedChannels, 6 * sizeofUnsignedInt
+  # bit depth (always 24 for images with alpha, even if grayscale)
+  patternHeader.writeUInt32BE((8 * if alpha then 3 else computedChannels), 6 * sizeofUnsignedInt)
   # flushing pattern header
   outputStream.write patternHeader
 
@@ -118,13 +120,32 @@ module.exports = (params) ->
     for j in [i...data.length] by channels
       channelData.push(data[j])
 
+    console.log 'channel', channelData.slice(0, 5)
+
     # writing data
     outputStream.write new Buffer(channelData)
 
-  # end file padding of magic size found by mistake
+  # end image data by padding of magic size found by mistake
   padding = new Buffer(dafuqPadding)
   padding.fill 0x0
   outputStream.write padding
+
+  if alpha
+    # write padding before alpha channel
+    alphaPaddingBuffer = new Buffer(alphaPadding)
+    alphaPaddingBuffer.fill 0x0
+    outputStream.write alphaPaddingBuffer
+
+    # alpha has the same header as other channels
+    outputStream.write channelHeader
+
+    # array of opacities (0-255)
+    channelData = []
+    for j in [computedChannels...data.length] by channels
+      channelData.push(data[j])
+    console.log '  alpha', channelData.slice(0, 5)
+
+    outputStream.write new Buffer(channelData)
 
   outputStream.end()
 
