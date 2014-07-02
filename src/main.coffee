@@ -24,7 +24,16 @@ module.exports = (params) ->
   name ?= 'Pattern'
   id ?= randomUUID()
 
-  computedChannels = if channels in [1, 4] then 3 else channels
+  # ignore alpha (for now)
+  if channels is 4
+    computedChannels = 3
+    alpha = true
+  else if channels is 2
+    computedChannels = 1
+    alpha = true
+  else
+    computedChannels = channels
+    alpha = false
 
   # file header
   outputStream.write new Buffer([
@@ -34,7 +43,7 @@ module.exports = (params) ->
 
     # pattern header
     0x0, 0x0, 0x0, 0x1, # version
-    0x0, 0x0, 0x0, 0x3, # image type RGB=3, indexed=2, gray=1
+    0x0, 0x0, 0x0, if computedChannels is 1 then 0x1 else 0x3 # image type RGB=3, gray=1 (not implemented indexed=2)
   ])
 
   # image header
@@ -100,35 +109,17 @@ module.exports = (params) ->
   # compression flag
   channelHeader.writeUInt8 0, 30
 
-  # looping all channels
-  if channels in [3, 4]
-    # only rgb
-    for i in [0...3]
-      # headers all the same for all channels
-      outputStream.write channelHeader
+  for i in [0...computedChannels]
+    # headers all the same for all channels
+    outputStream.write channelHeader
 
-      # array of channel intensities (0-255)
-      channelData = []
-      for j in [i...data.length] by channels
-        channelData.push(data[j])
-
-      # writing data
-      outputStream.write new Buffer(channelData)
-
-  # greyscale is a special case, we will convert it to rgb
-  else if channels is 1
     # array of channel intensities (0-255)
     channelData = []
-    for j in [0...data.length]
+    for j in [i...data.length] by channels
       channelData.push(data[j])
 
-    channelDataBuffer = new Buffer(channelData)
-
-    for i in [0...3]
-      # write header
-      outputStream.write channelHeader
-      # write data
-      outputStream.write channelDataBuffer
+    # writing data
+    outputStream.write new Buffer(channelData)
 
   # end file padding of magic size found by mistake
   padding = new Buffer(dafuqPadding)
