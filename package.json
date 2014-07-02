@@ -4,9 +4,12 @@
   "description": "Creates Photoshop pattern files (.pat)",
   "author": "Marek Hrabe <marekhrabe@abdoc.net> (http://github.com/marekhrabe)",
   "scripts": {
-    "prepublish": "coffee -o lib/ src/"
+    "prepublish": "coffee -o lib/ src/ && mkdir -p bin && echo \"#!/usr/bin/env node\" | cat - lib/cli.js > bin/patternizer && rm lib/cli.js"
   },
-  "main": "./lib/main",
+  "main": "./lib/main.js",
+  "bin": {
+    "patternizer": "./bin/patternizer"
+  },
   "repository": {
     "type": "git",
     "url": "http://github.com/marekhrabe/patternizer.git"
@@ -14,5 +17,9 @@
   "bugs": {
     "url": "http://github.com/marekhrabe/patternizer/issues"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.2.0",
+    "pngparse": "^2.0.1"
+  }
 }
