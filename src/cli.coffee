@@ -24,7 +24,7 @@ else
 
 if not fs.existsSync sourcePath
   console.error()
-  console.error("  error: file does not exist #{sourcePath}")
+  console.error("  [error]: file does not exist #{sourcePath}")
   console.error()
   process.exit 1
 
@@ -32,7 +32,7 @@ try
   body = fs.readFileSync sourcePath
 catch
   console.error()
-  console.error("  error: file cannot be read #{sourcePath}")
+  console.error("  [error]: file cannot be read #{sourcePath}")
   console.error()
   process.exit 1
 
@@ -42,7 +42,7 @@ patternizer = require '..'
 pngparse.parse body, (err, image) =>
   if err
     console.error()
-    console.error("  error: cannot parse png file #{sourcePath}")
+    console.error('  ', err)
     console.error()
     process.exit 1
 
@@ -55,5 +55,5 @@ pngparse.parse body, (err, image) =>
     callback: ->
       outputStream.on 'close', ->
         console.log()
-        console.log("  success: pattern created #{outputPath}")
+        console.log("  [success]: pattern created #{outputPath}")
         console.log()

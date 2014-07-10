@@ -120,8 +120,6 @@ module.exports = (params) ->
     for j in [i...data.length] by channels
       channelData.push(data[j])
 
-    console.log 'channel', channelData.slice(0, 5)
-
     # writing data
     outputStream.write new Buffer(channelData)
 
@@ -144,7 +142,6 @@ module.exports = (params) ->
     channelData = []
     for j in [computedChannels...data.length] by channels
       channelData.push(data[j])
-    console.log '  alpha', channelData.slice(0, 5)
 
     outputStream.write new Buffer(channelData)
 
