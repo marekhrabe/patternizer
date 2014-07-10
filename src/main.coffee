@@ -16,7 +16,7 @@ sizeofUnsignedInt = 4
 sizeofUnsignedChar = 1
 sizeofUnsignedShort = 2
 dafuqPadding = 92
-alphaPadding = 4
+alphaPadding = 88
 
 module.exports = (params) ->
   {name, id, image, outputStream, callback} = params
@@ -76,7 +76,7 @@ module.exports = (params) ->
   # size of chunk of data for pattern
   # = pattern data + header except version and pattern_size
   channelSize = (width * height + 7 * sizeofUnsignedInt + sizeofUnsignedShort + sizeofUnsignedChar)
-  patternHeader.writeUInt32BE 5 * sizeofUnsignedInt + computedChannels * channelSize + dafuqPadding + (if alpha then alphaPadding + channelSize else 0) + (if computedChannels is 1 then 8 else 0), 1 * sizeofUnsignedInt
+  patternHeader.writeUInt32BE 5 * sizeofUnsignedInt + computedChannels * channelSize + (if alpha then alphaPadding + channelSize else dafuqPadding) + (if computedChannels is 1 then 8 else 0), 1 * sizeofUnsignedInt
   # top offset
   patternHeader.writeUInt32BE 0, 2 * sizeofUnsignedInt
   # left offset
@@ -131,11 +131,6 @@ module.exports = (params) ->
     grayscalePadding.fill 0x0
     outputStream.write grayscalePadding
 
-  # end image data by padding of magic size found by mistake
-  padding = new Buffer(dafuqPadding)
-  padding.fill 0x0
-  outputStream.write padding
-
   if alpha
     # write padding before alpha channel
     alphaPaddingBuffer = new Buffer(alphaPadding)
@@ -152,6 +147,12 @@ module.exports = (params) ->
     console.log '  alpha', channelData.slice(0, 5)
 
     outputStream.write new Buffer(channelData)
+
+  else
+    # end image data by padding of magic size found by mistake
+    padding = new Buffer(dafuqPadding)
+    padding.fill 0x0
+    outputStream.write padding
 
   outputStream.end()
 
