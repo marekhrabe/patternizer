@@ -25,7 +25,7 @@ module.exports = (params) ->
   name ?= 'Pattern'
   id ?= randomUUID()
 
-  # ignore alpha (for now)
+  # check number of color channels and presence of alpha
   if channels is 4
     computedChannels = 3
     alpha = true
